@@ -1,4 +1,4 @@
-# wc-oracle
+# oracle
 
 Live prediction dashboard for the 2026 World Cup: ensemble models (Dixon-Coles / Elo / GBM),
 Monte Carlo bracket simulation, immutable prediction log, and a Jarvis/Blue-Lock-style HUD.
