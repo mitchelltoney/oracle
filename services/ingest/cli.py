@@ -1,4 +1,6 @@
-"""One-shot data refresh: fetch WC matches + standings, write a versioned snapshot.
+"""One-shot data refresh: fetch WC matches + standings + historical results,
+write versioned snapshots (``snapshot_*`` for the WC corpus, ``history_*`` for
+the historical international-results corpus).
 
 Entry point for ``make ingest``.
 """
@@ -13,6 +15,7 @@ from typing import Any
 from dotenv import load_dotenv
 
 from services.ingest.football_data import FootballDataProvider
+from services.ingest.martj42 import Martj42Provider
 from services.ingest.provider import Match, MissingApiKeyError, ProviderError
 from services.ingest.snapshots import Snapshot, write_snapshot
 
@@ -55,6 +58,23 @@ def run(data_dir: Path = Path("data")) -> int:
     )
     path = write_snapshot(snapshot, data_dir / "snapshots")
     print(f"wrote snapshot {path} ({len(matches)} matches)")
+
+    # Historical corpus for Elo/GBM training — failure degrades, never blocks the
+    # WC snapshot above (models fall back to the WC-only corpus with a warning).
+    try:
+        history_provider = Martj42Provider(raw_dir=data_dir / "raw")
+        history_matches = history_provider.fetch_all_matches()
+    except ProviderError as exc:
+        print(f"WARNING: historical results unavailable: {exc}", file=sys.stderr)
+        return 0
+    history = Snapshot(
+        as_of_utc=datetime.now(UTC),
+        source=Martj42Provider.SOURCE,
+        matches=sorted(history_matches, key=lambda m: (m.utc_kickoff, m.id)),
+        standings={},
+    )
+    history_path = write_snapshot(history, data_dir / "snapshots", kind="history")
+    print(f"wrote history {history_path} ({len(history_matches)} matches)")
     return 0
 
 

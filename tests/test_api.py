@@ -116,3 +116,22 @@ def test_empty_data_dir_is_graceful(tmp_path: Path) -> None:
     assert client.get("/fixtures").status_code == 404
     assert client.get("/calibration").status_code == 404
     assert client.get("/predictions").json() == []
+    assert client.get("/sim").status_code == 404
+
+
+def test_sim_endpoint_serves_the_latest_simulation(data_dir: Path) -> None:
+    import json
+
+    client = TestClient(create_app(data_dir))
+    assert client.get("/sim").status_code == 404
+
+    payload = {
+        "schema_version": 1,
+        "model": "ensemble",
+        "teams": {"Brazil": {"reach_final": 0.4, "win": 0.25}},
+    }
+    (data_dir / "sim").mkdir(parents=True, exist_ok=True)
+    (data_dir / "sim" / "latest.json").write_text(json.dumps(payload))
+    response = client.get("/sim")
+    assert response.status_code == 200
+    assert response.json() == payload

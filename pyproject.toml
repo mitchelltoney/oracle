@@ -10,6 +10,7 @@ dependencies = [
     "numpy>=1.26",
     "scipy>=1.11",
     "python-dotenv>=1.0",
+    "xgboost>=2.0",
 ]
 
 [dependency-groups]
@@ -39,7 +40,7 @@ strict = true
 python_version = "3.12"
 
 [[tool.mypy.overrides]]
-module = ["scipy.*"]
+module = ["scipy.*", "xgboost.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

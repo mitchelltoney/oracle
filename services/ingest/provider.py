@@ -39,6 +39,7 @@ class Match:
     away_goals: int | None
     duration: str  # REGULAR | EXTRA_TIME | PENALTY_SHOOTOUT
     winner: str | None  # HOME_TEAM | AWAY_TEAM | DRAW
+    neutral: bool | None = None  # True/False from historical data; None = unknown
 
 
 class MissingApiKeyError(RuntimeError):

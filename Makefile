@@ -10,10 +10,10 @@ predict:
 	uv run python -m services.predict
 
 sim:
-	@echo "TODO(P1): Monte Carlo bracket -> data/sim/latest.json" && exit 1
+	uv run python -m services.sim.cli
 
 backtest:
-	@echo "TODO(P1): historical calibration report (Brier / log loss)" && exit 1
+	uv run python -m services.backtest
 
 test:
 	uv run pytest

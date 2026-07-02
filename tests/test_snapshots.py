@@ -51,6 +51,31 @@ def test_load_latest_raises_when_empty(tmp_path: Path) -> None:
         load_latest_snapshot(tmp_path)
 
 
+def test_neutral_flag_roundtrips_and_defaults_none(
+    tmp_path: Path, make_match: MatchFactory
+) -> None:
+    from dataclasses import replace
+
+    neutral = replace(make_match(home_goals=1, away_goals=0, days_ago=2), neutral=True)
+    at_home = replace(make_match(home_goals=0, away_goals=0, days_ago=1), neutral=False)
+    unknown = make_match()
+    write_snapshot(make_snapshot([neutral, at_home, unknown]), tmp_path)
+
+    loaded = load_latest_snapshot(tmp_path).matches
+    assert [m.neutral for m in loaded] == [True, False, None]
+
+
+def test_history_kind_is_a_separate_stream(tmp_path: Path, make_match: MatchFactory) -> None:
+    wc = make_snapshot([make_match(home="wc-team")])
+    history = make_snapshot([make_match(home="hist-team")], as_of=AS_OF + timedelta(hours=1))
+    write_snapshot(wc, tmp_path)
+    path = write_snapshot(history, tmp_path, kind="history")
+    assert path.name == "history_20260701T130000Z.json"
+
+    assert load_latest_snapshot(tmp_path).matches[0].home == "wc-team"
+    assert load_latest_snapshot(tmp_path, kind="history").matches[0].home == "hist-team"
+
+
 def test_finished_before_is_strict_leakage_gate(make_match: MatchFactory) -> None:
     cutoff = datetime(2026, 6, 20, 18, 0, tzinfo=UTC)
     before = make_match(kickoff=cutoff - timedelta(days=1), home_goals=1, away_goals=0)

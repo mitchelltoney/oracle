@@ -61,6 +61,7 @@ def _match_to_dict(match: Match) -> dict[str, Any]:
         "away_goals": match.away_goals,
         "duration": match.duration,
         "winner": match.winner,
+        "neutral": match.neutral,
     }
 
 
@@ -79,12 +80,13 @@ def _match_from_dict(data: dict[str, Any]) -> Match:
         away_goals=data["away_goals"],
         duration=data["duration"],
         winner=data["winner"],
+        neutral=data.get("neutral"),  # absent in schema-v1 files written before P1
     )
 
 
-def write_snapshot(snapshot: Snapshot, snapshots_dir: Path) -> Path:
+def write_snapshot(snapshot: Snapshot, snapshots_dir: Path, *, kind: str = "snapshot") -> Path:
     snapshots_dir.mkdir(parents=True, exist_ok=True)
-    stem = f"snapshot_{snapshot.as_of_utc:%Y%m%dT%H%M%S}Z"
+    stem = f"{kind}_{snapshot.as_of_utc:%Y%m%dT%H%M%S}Z"
     path = snapshots_dir / f"{stem}.json"
     suffix = 0
     while path.exists():  # never overwrite an existing snapshot
@@ -112,10 +114,10 @@ def load_snapshot(path: Path) -> Snapshot:
     )
 
 
-def load_latest_snapshot(snapshots_dir: Path) -> Snapshot:
-    candidates = sorted(snapshots_dir.glob("snapshot_*.json"))
+def load_latest_snapshot(snapshots_dir: Path, *, kind: str = "snapshot") -> Snapshot:
+    candidates = sorted(snapshots_dir.glob(f"{kind}_*.json"))
     if not candidates:
         raise FileNotFoundError(
-            f"no snapshots in {snapshots_dir} — run `make ingest` first"
+            f"no {kind} files in {snapshots_dir} — run `make ingest` first"
         )
     return load_snapshot(candidates[-1])
