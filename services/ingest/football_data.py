@@ -31,6 +31,10 @@ logger = logging.getLogger(__name__)
 
 API_KEY_ENV = "FOOTBALL_DATA_API_KEY"
 TRANSIENT_RETRY_SECONDS = 2.0
+# socket died mid-exchange (dropped keep-alive, SSL EOF on read): a fresh-socket
+# retry is worthwhile. Timeouts and permanent config errors (proxy, TLS verify,
+# bad URL) are NOT retried — pre-kickoff runs cannot afford stacked 30s stalls.
+_TRANSIENT_ERRORS = (httpx.RemoteProtocolError, httpx.ReadError, httpx.WriteError)
 
 
 def _parse_match(raw: dict[str, Any], season: int) -> Match | None:
@@ -128,18 +132,14 @@ class FootballDataProvider:
             self._wait_for_quota()
             try:
                 response = self._client.get(url, params=params, headers=headers)
-            except httpx.TransportError as exc:
+            except httpx.HTTPError as exc:
                 # football-data.org closes keep-alive sockets (e.g. after a 403)
                 # without a TLS close-notify; a pooled connection then dies with
                 # "server disconnected" / SSL EOF. Retrying opens a fresh socket.
-                if attempt < self._max_retries:
-                    logger.warning(
-                        "transport error on %s (%s); retrying", url, exc
-                    )
+                if isinstance(exc, _TRANSIENT_ERRORS) and attempt < self._max_retries:
+                    logger.warning("transient error on %s (%s); retrying", url, exc)
                     self._sleep(TRANSIENT_RETRY_SECONDS)
                     continue
-                raise ProviderError(f"GET {url} failed: {exc}") from exc
-            except httpx.HTTPError as exc:
                 raise ProviderError(f"GET {url} failed: {exc}") from exc
             self._note_quota(response)
 
@@ -147,12 +147,22 @@ class FootballDataProvider:
                 body: dict[str, Any] = cached["body"]
                 return body
             if response.status_code == 200:
-                body = response.json()
+                try:
+                    body = response.json()
+                except json.JSONDecodeError as exc:
+                    raise ProviderError(
+                        f"GET {url} returned HTTP 200 with a non-JSON body: {exc}"
+                    ) from exc
                 self._save_cache(cache_path, url, response.headers.get("ETag"), body)
                 self._write_raw(path, params, body)
                 return body
             if response.status_code == 429:
-                retry_after = float(response.headers.get("Retry-After", "60"))
+                try:
+                    retry_after = float(response.headers.get("Retry-After", "60"))
+                except ValueError:
+                    # RFC 7231 allows an HTTP-date here; a safe default backoff
+                    # beats crashing past the ProviderError contract
+                    retry_after = 60.0
                 if attempt < self._max_retries:
                     logger.warning(
                         "rate limited on %s; backing off %.0fs", url, retry_after

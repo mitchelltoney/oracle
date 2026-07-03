@@ -199,7 +199,7 @@ def test_dropped_connection_retries_on_fresh_socket(tmp_path: Path) -> None:
 @respx.mock
 def test_persistent_transport_error_gives_up(tmp_path: Path) -> None:
     route = respx.get(MATCHES_URL).mock(
-        side_effect=httpx.ConnectError("SSL: UNEXPECTED_EOF_WHILE_READING")
+        side_effect=httpx.ReadError("SSL: UNEXPECTED_EOF_WHILE_READING")
     )
     sleeps: list[float] = []
     provider = make_provider(tmp_path, sleep=sleeps.append, max_retries=2)
@@ -207,3 +207,51 @@ def test_persistent_transport_error_gives_up(tmp_path: Path) -> None:
         provider.fetch_matches(2026)
     assert route.call_count == 3  # initial + 2 retries, then give up
     assert sleeps == [TRANSIENT_RETRY_SECONDS, TRANSIENT_RETRY_SECONDS]
+
+
+@pytest.mark.parametrize(
+    "exc",
+    [
+        httpx.ConnectTimeout("timed out"),
+        httpx.ReadTimeout("timed out"),
+        httpx.ProxyError("proxy refused"),
+        httpx.UnsupportedProtocol("ftp is not supported"),
+        httpx.ConnectError("certificate verify failed"),
+    ],
+    ids=["connect-timeout", "read-timeout", "proxy", "protocol", "tls-verify"],
+)
+@respx.mock
+def test_permanent_or_timeout_errors_fail_fast(tmp_path: Path, exc: Exception) -> None:
+    route = respx.get(MATCHES_URL).mock(side_effect=exc)
+    sleeps: list[float] = []
+    provider = make_provider(tmp_path, sleep=sleeps.append)
+    with pytest.raises(ProviderError):
+        provider.fetch_matches(2026)
+    assert route.call_count == 1  # no retry: fail fast, no stacked 30s stalls
+    assert sleeps == []
+
+
+@respx.mock
+def test_non_json_200_raises_provider_error(tmp_path: Path) -> None:
+    respx.get(MATCHES_URL).mock(
+        return_value=httpx.Response(200, text="<html>maintenance</html>")
+    )
+    with pytest.raises(ProviderError, match="non-JSON"):
+        make_provider(tmp_path).fetch_matches(2026)
+
+
+@respx.mock
+def test_retry_after_http_date_backs_off_default(tmp_path: Path) -> None:
+    respx.get(MATCHES_URL).mock(
+        side_effect=[
+            httpx.Response(
+                429, headers={"Retry-After": "Wed, 08 Jul 2026 19:00:00 GMT"}
+            ),
+            httpx.Response(200, json=V4_PAYLOAD),
+        ]
+    )
+    sleeps: list[float] = []
+    provider = make_provider(tmp_path, sleep=sleeps.append)
+    matches = provider.fetch_matches(2026)
+    assert sleeps == [60.0]  # HTTP-date form: default backoff, not a crash
+    assert len(matches) == 2
