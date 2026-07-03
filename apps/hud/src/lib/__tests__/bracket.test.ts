@@ -107,11 +107,13 @@ describe("buildBracket", () => {
       predictions: [
         predRow({
           fixture_id: 3,
+          model: "dixon_coles",
           model_version: "dc-1.0.0",
           probs: { home: 0.4, draw: 0.4, away: 0.2 },
         }),
         predRow({
           fixture_id: 3,
+          model: "elo",
           model_version: "elo-1.0.0",
           probs: { home: 0.6, draw: 0.2, away: 0.2 },
         }),

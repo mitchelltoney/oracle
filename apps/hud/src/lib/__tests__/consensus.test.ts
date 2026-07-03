@@ -78,10 +78,30 @@ describe("buildConsensusRows", () => {
     const calm = fixture({ id: 1, home: "Alpha", away: "Bravo" });
     const split = fixture({ id: 2, home: "Charlie", away: "Delta" });
     const predictions = [
-      predRow({ fixture_id: 1, model_version: "dc-1.0.0", probs: p(0.5, 0.3, 0.2) }),
-      predRow({ fixture_id: 1, model_version: "elo-1.0.0", probs: p(0.5, 0.3, 0.2) }),
-      predRow({ fixture_id: 2, model_version: "dc-1.0.0", probs: p(0.8, 0.1, 0.1) }),
-      predRow({ fixture_id: 2, model_version: "elo-1.0.0", probs: p(0.2, 0.2, 0.6) }),
+      predRow({
+        fixture_id: 1,
+        model: "dixon_coles",
+        model_version: "dc-1.0.0",
+        probs: p(0.5, 0.3, 0.2),
+      }),
+      predRow({
+        fixture_id: 1,
+        model: "elo",
+        model_version: "elo-1.0.0",
+        probs: p(0.5, 0.3, 0.2),
+      }),
+      predRow({
+        fixture_id: 2,
+        model: "dixon_coles",
+        model_version: "dc-1.0.0",
+        probs: p(0.8, 0.1, 0.1),
+      }),
+      predRow({
+        fixture_id: 2,
+        model: "elo",
+        model_version: "elo-1.0.0",
+        probs: p(0.2, 0.2, 0.6),
+      }),
     ];
     const rows = buildConsensusRows([calm, split], predictions);
     expect(rows.map((r) => r.fixture.id)).toEqual([2, 1]);

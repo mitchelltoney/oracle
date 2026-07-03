@@ -1,3 +1,4 @@
+import { latestPerModel } from "./latest";
 import type { Fixture, PredictionRecord, Probs } from "./types";
 
 /**
@@ -65,15 +66,18 @@ export function buildConsensusRows(
   predictions: PredictionRecord[],
 ): ConsensusRow[] {
   const rows = fixtures.map((fixture) => {
-    const models = predictions
-      .filter((p) => p.fixture_id === fixture.id)
+    // one column per model FAMILY, newest generation only — the log also
+    // holds superseded model_versions of the same family (see latestPerModel)
+    const models = latestPerModel(
+      predictions.filter((p) => p.fixture_id === fixture.id),
+    )
       .map((p) => ({
         model: p.model,
         model_version: p.model_version,
         probs: p.probs,
         written_at: p.written_at,
       }))
-      .sort((a, b) => a.model_version.localeCompare(b.model_version));
+      .sort((a, b) => a.model.localeCompare(b.model));
     const dists = models.map((m) => m.probs);
     return {
       fixture,

@@ -1,3 +1,4 @@
+import { latestPerModel } from "./latest";
 import type { Fixture, PredictionRecord, Probs, SimPayload } from "./types";
 
 /**
@@ -156,9 +157,13 @@ function ensembleProbs(
   fixtureId: number,
   predictions: PredictionRecord[],
 ): Probs | null {
-  const rows = predictions.filter((p) => p.fixture_id === fixtureId);
+  // newest generation per family only: with several ensemble generations in
+  // the log, matching on a version prefix would pick whichever sorts first
+  const rows = latestPerModel(
+    predictions.filter((p) => p.fixture_id === fixtureId),
+  );
   if (rows.length === 0) return null;
-  const ens = rows.find((p) => p.model_version.startsWith("ens"));
+  const ens = rows.find((p) => p.model === "ensemble");
   if (ens) return ens.probs;
   const sum = rows.reduce(
     (acc, p) => ({
