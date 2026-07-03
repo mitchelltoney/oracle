@@ -186,6 +186,38 @@ def test_known_fixtures_reconcile_the_pairing_tree(make_match: MatchFactory) -> 
     assert team_probs(result, "Q0")[2] + team_probs(result, "Q4")[2] == pytest.approx(1.0)
 
 
+def test_in_play_fixture_moves_fit_cutoff_before_its_kickoff(
+    make_match: MatchFactory,
+) -> None:
+    from services.ingest import MatchStatus
+    from services.sim.bracket import fit_cutoff
+
+    snapshot = r32_snapshot(make_match, finished_slots=3)
+    in_play_kickoff = NOW - timedelta(hours=2)  # slot 3 kicked off, still playing
+    matches = list(snapshot.matches)
+    matches[3] = replace(
+        matches[3], utc_kickoff=in_play_kickoff, status=MatchStatus.IN_PLAY
+    )
+    snapshot = replace(snapshot, matches=matches)
+
+    cutoff = fit_cutoff(snapshot, NOW)
+    assert cutoff == in_play_kickoff - timedelta(microseconds=1)
+
+    # true kickoffs are preserved (no clamping), and everything the sim will
+    # ask a model to predict kicks off strictly after the fit cutoff
+    bracket = build_bracket(snapshot, cutoff)
+    in_play = bracket.fixtures["LAST_32"][frozenset((6, 7))]
+    assert in_play.utc_kickoff == in_play_kickoff
+    for round_fixtures in bracket.fixtures.values():
+        for fixture in round_fixtures.values():
+            assert fixture.utc_kickoff > cutoff
+    for round_kickoff in bracket.round_kickoffs.values():
+        assert round_kickoff > cutoff
+
+    # nothing in play: the cutoff is simply now
+    assert fit_cutoff(r32_snapshot(make_match), NOW) == NOW
+
+
 def test_penalty_model_is_a_bounded_near_coin_flip() -> None:
     assert penalty_home_prob(1.0, 0.0) == 0.5 + PENS_SKILL_CAP == 0.55
     assert penalty_home_prob(0.0, 1.0) == 0.5 - PENS_SKILL_CAP == 0.45

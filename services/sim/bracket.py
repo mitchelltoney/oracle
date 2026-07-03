@@ -23,7 +23,7 @@ or title probabilities.
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 
 from services.ingest import Match, MatchStatus, Snapshot
@@ -32,9 +32,29 @@ logger = logging.getLogger(__name__)
 
 KNOCKOUT_ROUNDS = ("LAST_32", "LAST_16", "QUARTER_FINALS", "SEMI_FINALS", "FINAL")
 
-# a fixture must kick off after the model's cutoff (= now) to be predictable
+# synthetic-fixture kickoffs are floored just after the caller's cutoff so the
+# models' leakage guard accepts them; REAL fixtures keep their true kickoffs —
+# callers fit at ``fit_cutoff`` so those stay strictly after the cutoff too
 _KICKOFF_MARGIN = timedelta(minutes=1)
 _ROUND_GAP = timedelta(days=4)  # synthetic spacing for rounds with no known fixture
+
+
+def fit_cutoff(snapshot: Snapshot, now: datetime) -> datetime:
+    """Latest model-fit cutoff strictly before every fixture the sim predicts.
+
+    Normally ``now``; if a knockout match has kicked off without finishing
+    (in play, or feed lag), just before the earliest such kickoff — trading a
+    few hours of training data for hard rule 2 instead of rewriting fixture
+    timestamps to dodge the models' leakage guard.
+    """
+    return min(
+        [now]
+        + [
+            m.utc_kickoff - timedelta(microseconds=1)
+            for m in snapshot.matches
+            if m.stage in KNOCKOUT_ROUNDS and m.status is not MatchStatus.FINISHED
+        ]
+    )
 
 PairKey = frozenset[int]  # the two participants' team indices
 
@@ -54,7 +74,8 @@ class BracketState:
     pairings: dict[str, tuple[tuple[int, int], ...]]
     # round -> participants -> winning team index (already-played matches)
     known_winners: dict[str, dict[PairKey, int]]
-    # round -> participants -> the real fixture (kickoff clamped after ``now``)
+    # round -> participants -> the real fixture, TRUE kickoff preserved:
+    # fit models at ``fit_cutoff`` so in-play fixtures stay predictable
     fixtures: dict[str, dict[PairKey, Match]]
     round_kickoffs: dict[str, datetime]  # for synthetic fixtures of unknown pairings
     pairing_source: str  # template | reconciled | mixed
@@ -112,15 +133,7 @@ def build_bracket(snapshot: Snapshot, now: datetime) -> BracketState:
         if winner_idx is not None:
             known_winners.setdefault(round_name, {})[key] = winner_idx
             return
-        # KNOWN SCOPE (stats-validator WARN): clamping an in-play/feed-lagged
-        # kickoff to now+margin lets a cutoff=now model predict it, though the
-        # corpus may contain matches finished after the TRUE kickoff. Affects
-        # only data/sim/latest.json — never the prediction log, whose fixtures
-        # all kick off genuinely after now.
-        clamped = replace(
-            match, utc_kickoff=max(match.utc_kickoff, now + _KICKOFF_MARGIN)
-        )
-        fixtures.setdefault(round_name, {})[key] = clamped
+        fixtures.setdefault(round_name, {})[key] = match
 
     for match in entry:
         register(rounds[0], match)

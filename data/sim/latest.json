@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-07-03T01:51:29.026696+00:00",
+  "generated_at": "2026-07-03T03:45:48.416480+00:00",
   "snapshot_as_of": "2026-07-03T00:27:45.148925+00:00",
   "history_as_of": "2026-07-03T00:27:45.706228+00:00",
   "model": "ensemble",
@@ -134,7 +134,7 @@
       "reach_quarter_finals": 0.525,
       "reach_semi_finals": 0.15842,
       "reach_final": 0.05495,
-      "win": 0.02038
+      "win": 0.02039
     },
     "Senegal": {
       "reach_last_32": 1.0,
@@ -147,9 +147,9 @@
     "Brazil": {
       "reach_last_32": 1.0,
       "reach_last_16": 1.0,
-      "reach_quarter_finals": 0.70988,
-      "reach_semi_finals": 0.37399,
-      "reach_final": 0.20425,
+      "reach_quarter_finals": 0.70989,
+      "reach_semi_finals": 0.374,
+      "reach_final": 0.20426,
       "win": 0.09163
     },
     "Japan": {
@@ -171,8 +171,8 @@
     "Norway": {
       "reach_last_32": 1.0,
       "reach_last_16": 1.0,
-      "reach_quarter_finals": 0.29012,
-      "reach_semi_finals": 0.09902,
+      "reach_quarter_finals": 0.29011,
+      "reach_semi_finals": 0.09901,
       "reach_final": 0.03722,
       "win": 0.01058
     },
@@ -213,8 +213,8 @@
       "reach_last_16": 0.87894,
       "reach_quarter_finals": 0.71459,
       "reach_semi_finals": 0.51602,
-      "reach_final": 0.30676,
-      "win": 0.16317
+      "reach_final": 0.30675,
+      "win": 0.16316
     },
     "Cape Verde Islands": {
       "reach_last_32": 1.0,

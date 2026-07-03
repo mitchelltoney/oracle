@@ -24,18 +24,22 @@ from services.models.elo import EloModel
 from services.models.ensemble import EnsembleModel
 from services.models.features import combine_corpora
 from services.models.gbm import GbmModel
-from services.sim.bracket import build_bracket
+from services.sim.bracket import build_bracket, fit_cutoff
 from services.sim.engine import SimResult, simulate
 
 MODEL_CHOICES = ("ensemble", "dc", "elo", "gbm")
 
 
 def _build_model(
-    choice: str, snapshot: Snapshot, combined: list[Match], now: datetime, data_dir: Path
+    choice: str,
+    snapshot: Snapshot,
+    combined: list[Match],
+    cutoff: datetime,
+    data_dir: Path,
 ) -> MatchModel:
     if choice == "dc":
         model: MatchModel = DixonColesModel()
-        model.fit(snapshot.finished_before(now), cutoff=now)  # P0 corpus, unchanged
+        model.fit(snapshot.finished_before(cutoff), cutoff=cutoff)  # P0 corpus
         return model
     if choice == "elo":
         model = EloModel()
@@ -43,7 +47,7 @@ def _build_model(
         model = GbmModel()
     else:
         model = EnsembleModel(weights_dir=data_dir / "sim")
-    model.fit(combined, cutoff=now)
+    model.fit(combined, cutoff=cutoff)
     return model
 
 
@@ -84,10 +88,11 @@ def run(argv: list[str] | None = None, data_dir: Path = Path("data")) -> int:
         print(f"WARNING: {exc}; fitting on the WC corpus only", file=sys.stderr)
 
     now = datetime.now(UTC)
+    cutoff = fit_cutoff(snapshot, now)  # before the earliest in-play kickoff
     combined = combine_corpora(history.matches if history else [], snapshot.matches)
     try:
-        model = _build_model(args.model, snapshot, combined, now, data_dir)
-        bracket = build_bracket(snapshot, now)
+        model = _build_model(args.model, snapshot, combined, cutoff, data_dir)
+        bracket = build_bracket(snapshot, cutoff)
     except ValueError as exc:
         print(f"FATAL: {exc}", file=sys.stderr)
         return 1
