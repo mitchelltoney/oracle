@@ -8,6 +8,8 @@ __pycache__/
 .ruff_cache/
 .DS_Store
 .local-backup/
+apps/hud/node_modules/
+apps/hud/dist/
 # regenerable bulk pulls; their versioning is the timestamped filenames.
 # data/predictions/ and data/sim/ ARE tracked: the immutable log and the
 # sim/backtest/weights artifacts the nightly routine commits.
