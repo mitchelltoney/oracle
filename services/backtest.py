@@ -6,6 +6,11 @@ finished tournament match — no training sample can postdate its target (hard
 rule 2). Predictions are scored IN MEMORY with the existing calibration metrics;
 the append-only prediction log is never touched (hard rule 1).
 
+Past tournaments' targets come from the ingested historical corpus (the
+football-data.org free tier 403s on non-current seasons); only the live
+``CURRENT_SEASON`` uses the API snapshot. Both corpora flow through the same
+ingest snapshot abstraction (hard rule 3).
+
 This module is the sanctioned writer of ``data/sim/backtest_report.json``
 (hard rule 5). The report schema is stable so successive runs can be diffed:
 ``{schema_version, generated_at, corpus{...}, tournaments[...], overall[...],
@@ -38,8 +43,30 @@ from services.models.gbm import GbmModel
 from services.prediction_log import PredictionRecord
 
 TOURNAMENTS = (2018, 2022, 2026)
+CURRENT_SEASON = 2026  # the only season the API serves live; see module docstring
 
 ModelsFactory = Callable[[], Sequence[MatchModel]]
+
+
+def _season_targets(
+    season: int, snapshot: Snapshot, history: Snapshot | None
+) -> list[Match]:
+    if season == CURRENT_SEASON:
+        pool: Sequence[Match] = snapshot.matches
+    else:
+        pool = [
+            m
+            for m in (history.matches if history else [])
+            if importance_tier(m.stage) is Tier.WC_FINALS
+        ]
+    return [
+        m
+        for m in pool
+        if m.season == season
+        and m.status is MatchStatus.FINISHED
+        and m.home_goals is not None
+        and m.away_goals is not None
+    ]
 
 
 def _default_models() -> Sequence[MatchModel]:
@@ -107,14 +134,7 @@ def run(
     tournaments_out: list[dict[str, Any]] = []
 
     for season in TOURNAMENTS:
-        targets = [
-            m
-            for m in snapshot.matches
-            if m.season == season
-            and m.status is MatchStatus.FINISHED
-            and m.home_goals is not None
-            and m.away_goals is not None
-        ]
+        targets = _season_targets(season, snapshot, history)
         if not targets:
             print(f"WARNING: season {season}: no finished matches; skipping",
                   file=sys.stderr)

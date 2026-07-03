@@ -43,12 +43,14 @@ def planted_dir(tmp_path: Path, make_match: MatchFactory) -> Path:
             kickoff += timedelta(days=5)
             i += 1
 
+    # past tournaments are backtested from the HISTORY corpus (the API free
+    # tier does not serve them); the API snapshot carries only the live season
     targets = [
         make_match(
             id=8000 + j,
             kickoff=WC_2018_START + timedelta(days=j),
             season=2018,
-            stage="GROUP_STAGE",
+            stage="FIFA World Cup",
             home_id=400 + j % 3,
             home=TEAMS[j % 3],
             away_id=403 + j % 3,
@@ -62,7 +64,7 @@ def planted_dir(tmp_path: Path, make_match: MatchFactory) -> Path:
         Snapshot(
             as_of_utc=datetime(2026, 7, 1, tzinfo=UTC),
             source="football-data.org",
-            matches=targets,
+            matches=[],
             standings={},
         ),
         tmp_path / "snapshots",
@@ -71,7 +73,7 @@ def planted_dir(tmp_path: Path, make_match: MatchFactory) -> Path:
         Snapshot(
             as_of_utc=datetime(2026, 7, 1, tzinfo=UTC),
             source="history",
-            matches=history,
+            matches=[*history, *targets],
             standings={},
         ),
         tmp_path / "snapshots",
