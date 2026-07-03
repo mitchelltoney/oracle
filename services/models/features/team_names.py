@@ -26,6 +26,7 @@ ALIASES: dict[str, str] = {
     "ir iran": "iran",
     "cote d'ivoire": "ivory coast",
     "cabo verde": "cape verde",
+    "cape verde islands": "cape verde",  # football-data.org 2026 feed variant
     "czechia": "czech republic",
     "turkiye": "turkey",
     "congo dr": "dr congo",
