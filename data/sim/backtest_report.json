@@ -1,0 +1,146 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-07-03T01:50:59.413388+00:00",
+  "corpus": {
+    "wc_snapshot_as_of": "2026-07-03T00:27:45.148925+00:00",
+    "history_as_of": "2026-07-03T00:27:45.706228+00:00"
+  },
+  "tournaments": [
+    {
+      "season": 2018,
+      "cutoff": "2018-06-14T11:59:59.999999+00:00",
+      "n_targets": 64,
+      "models": [
+        {
+          "model": "dixon_coles",
+          "model_version": "dc-1.0.0",
+          "n": 64,
+          "brier": 0.6403268041819288,
+          "log_loss": 1.0597860949583033
+        },
+        {
+          "model": "elo",
+          "model_version": "elo-1.0.1",
+          "n": 64,
+          "brier": 0.5806199576152454,
+          "log_loss": 0.9790800482547607
+        },
+        {
+          "model": "ensemble",
+          "model_version": "ens-1.0.1",
+          "n": 64,
+          "brier": 0.5864401613106738,
+          "log_loss": 0.9887278368844626
+        },
+        {
+          "model": "gbm",
+          "model_version": "gbm-1.0.1",
+          "n": 64,
+          "brier": 0.5822803553646283,
+          "log_loss": 0.9843851507955966
+        }
+      ]
+    },
+    {
+      "season": 2022,
+      "cutoff": "2022-11-20T11:59:59.999999+00:00",
+      "n_targets": 64,
+      "models": [
+        {
+          "model": "dixon_coles",
+          "model_version": "dc-1.0.0",
+          "n": 64,
+          "brier": 0.6435782344830694,
+          "log_loss": 1.0655981074197372
+        },
+        {
+          "model": "elo",
+          "model_version": "elo-1.0.1",
+          "n": 64,
+          "brier": 0.6106202611397397,
+          "log_loss": 1.0389824401593026
+        },
+        {
+          "model": "ensemble",
+          "model_version": "ens-1.0.1",
+          "n": 64,
+          "brier": 0.6085110599239936,
+          "log_loss": 1.0208711992450132
+        },
+        {
+          "model": "gbm",
+          "model_version": "gbm-1.0.1",
+          "n": 64,
+          "brier": 0.6296067518940298,
+          "log_loss": 1.0828029168228515
+        }
+      ]
+    },
+    {
+      "season": 2026,
+      "cutoff": "2026-06-11T18:59:59.999999+00:00",
+      "n_targets": 83,
+      "models": [
+        {
+          "model": "dixon_coles",
+          "model_version": "dc-1.0.0",
+          "n": 83,
+          "brier": 0.6262889863983196,
+          "log_loss": 1.0413104405632163
+        },
+        {
+          "model": "elo",
+          "model_version": "elo-1.0.1",
+          "n": 83,
+          "brier": 0.5172025683392697,
+          "log_loss": 0.8758048117345125
+        },
+        {
+          "model": "ensemble",
+          "model_version": "ens-1.0.1",
+          "n": 83,
+          "brier": 0.5300558500211638,
+          "log_loss": 0.9042939336465792
+        },
+        {
+          "model": "gbm",
+          "model_version": "gbm-1.0.1",
+          "n": 83,
+          "brier": 0.5190408477160741,
+          "log_loss": 0.8772987579501071
+        }
+      ]
+    }
+  ],
+  "overall": [
+    {
+      "model": "dixon_coles",
+      "model_version": "dc-1.0.0",
+      "n": 211,
+      "brier": 0.635791034813367,
+      "log_loss": 1.0542813057769742
+    },
+    {
+      "model": "elo",
+      "model_version": "elo-1.0.1",
+      "n": 211,
+      "brier": 0.5647733989216988,
+      "log_loss": 0.9566246380685526
+    },
+    {
+      "model": "ensemble",
+      "model_version": "ens-1.0.1",
+      "n": 211,
+      "brier": 0.5709550412832953,
+      "log_loss": 0.9652641459950357
+    },
+    {
+      "model": "gbm",
+      "model_version": "gbm-1.0.1",
+      "n": 211,
+      "brier": 0.571759076895679,
+      "log_loss": 0.9721129537319411
+    }
+  ],
+  "unmatched_team_names": []
+}
