@@ -7,7 +7,11 @@ import httpx
 import pytest
 import respx
 
-from services.ingest.football_data import API_KEY_ENV, FootballDataProvider
+from services.ingest.football_data import (
+    API_KEY_ENV,
+    TRANSIENT_RETRY_SECONDS,
+    FootballDataProvider,
+)
 from services.ingest.provider import MatchStatus, MissingApiKeyError, ProviderError
 
 MATCHES_URL = "https://api.football-data.org/v4/competitions/2000/matches"
@@ -175,3 +179,31 @@ def test_http_error_raises_provider_error(tmp_path: Path) -> None:
     respx.get(MATCHES_URL).mock(return_value=httpx.Response(403, text="restricted"))
     with pytest.raises(ProviderError, match="403"):
         make_provider(tmp_path).fetch_matches(2018)
+
+
+@respx.mock
+def test_dropped_connection_retries_on_fresh_socket(tmp_path: Path) -> None:
+    respx.get(MATCHES_URL).mock(
+        side_effect=[
+            httpx.RemoteProtocolError("Server disconnected without sending a response"),
+            httpx.Response(200, json=V4_PAYLOAD),
+        ]
+    )
+    sleeps: list[float] = []
+    provider = make_provider(tmp_path, sleep=sleeps.append)
+    matches = provider.fetch_matches(2026)
+    assert sleeps == [TRANSIENT_RETRY_SECONDS]
+    assert len(matches) == 2
+
+
+@respx.mock
+def test_persistent_transport_error_gives_up(tmp_path: Path) -> None:
+    route = respx.get(MATCHES_URL).mock(
+        side_effect=httpx.ConnectError("SSL: UNEXPECTED_EOF_WHILE_READING")
+    )
+    sleeps: list[float] = []
+    provider = make_provider(tmp_path, sleep=sleeps.append, max_retries=2)
+    with pytest.raises(ProviderError, match="UNEXPECTED_EOF"):
+        provider.fetch_matches(2026)
+    assert route.call_count == 3  # initial + 2 retries, then give up
+    assert sleeps == [TRANSIENT_RETRY_SECONDS, TRANSIENT_RETRY_SECONDS]

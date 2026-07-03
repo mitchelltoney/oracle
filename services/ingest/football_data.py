@@ -30,6 +30,7 @@ from services.ingest.provider import (
 logger = logging.getLogger(__name__)
 
 API_KEY_ENV = "FOOTBALL_DATA_API_KEY"
+TRANSIENT_RETRY_SECONDS = 2.0
 
 
 def _parse_match(raw: dict[str, Any], season: int) -> Match | None:
@@ -127,6 +128,17 @@ class FootballDataProvider:
             self._wait_for_quota()
             try:
                 response = self._client.get(url, params=params, headers=headers)
+            except httpx.TransportError as exc:
+                # football-data.org closes keep-alive sockets (e.g. after a 403)
+                # without a TLS close-notify; a pooled connection then dies with
+                # "server disconnected" / SSL EOF. Retrying opens a fresh socket.
+                if attempt < self._max_retries:
+                    logger.warning(
+                        "transport error on %s (%s); retrying", url, exc
+                    )
+                    self._sleep(TRANSIENT_RETRY_SECONDS)
+                    continue
+                raise ProviderError(f"GET {url} failed: {exc}") from exc
             except httpx.HTTPError as exc:
                 raise ProviderError(f"GET {url} failed: {exc}") from exc
             self._note_quota(response)
