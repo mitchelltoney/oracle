@@ -4,16 +4,20 @@ latest snapshot.
 The entry round is the earliest ``KNOCKOUT_ROUNDS`` stage present in the
 snapshot; its matches (teams always determined by then) define the entrants.
 Advancement to later rounds uses a sequential-pairing template — winner of
-slot 0 meets winner of slot 1, and so on in schedule order — RECONCILED against
-any later-round fixture the snapshot already knows: when a real fixture's two
-teams can be located in distinct feeder slots, that edge is pinned and
-overrides the template. ``pairing_source`` reports how much of the tree came
-from real fixtures ("reconciled") vs the template.
+slot 0 meets winner of slot 1, and so on in FIXTURE-ID order — RECONCILED
+against any later-round fixture the snapshot already knows: when a real
+fixture's two teams can be located in distinct feeder slots, that edge is
+pinned and overrides the template. ``pairing_source`` reports how much of the
+tree came from real fixtures ("reconciled") vs the template.
 
-CAVEAT (verify against the first real 2026 snapshot): the exact football-data
-stage strings and the sequential-pairing assumption are encoded ONLY here, in
-``KNOCKOUT_ROUNDS`` and ``_template_pairs``. THIRD_PLACE is deliberately not
-simulated — it does not affect round-reach or title probabilities.
+Verified against the 2026-07-03 live feed plus the published bracket:
+football-data.org WC2026 fixture ids follow bracket-tree order (LAST_32 ids
+537415-537430 are bracket positions, NOT schedule order), so consecutive
+id pairs are the true feeder pairs at every round — all 8 LAST_16 and all
+4 QUARTER_FINALS pairings reproduce. Kickoff-order pairing does NOT match
+the real bracket. The stage strings match the feed's full vocabulary.
+THIRD_PLACE is deliberately not simulated — it does not affect round-reach
+or title probabilities.
 """
 
 from __future__ import annotations
@@ -70,7 +74,9 @@ def build_bracket(snapshot: Snapshot, now: datetime) -> BracketState:
         )
     rounds = KNOCKOUT_ROUNDS[entry_index:]
 
-    entry = sorted(by_round[rounds[0]], key=lambda m: (m.utc_kickoff, m.id))
+    # id order == bracket-tree order for this provider (see module docstring);
+    # kickoff order does not reproduce the real feeder structure
+    entry = sorted(by_round[rounds[0]], key=lambda m: m.id)
     n_slots = len(entry)
     if n_slots < 1 or n_slots & (n_slots - 1):
         raise ValueError(
