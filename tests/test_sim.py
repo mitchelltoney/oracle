@@ -255,7 +255,11 @@ def test_cli_writes_latest_json(tmp_path: Any, make_match: MatchFactory) -> None
         assert probs["win"] <= probs["reach_final"] <= probs["reach_semi_finals"]
 
 
-def test_100k_sims_complete_under_ten_seconds(make_match: MatchFactory) -> None:
+def test_engine_only_100k_sims_under_ten_seconds(make_match: MatchFactory) -> None:
+    """Times ONLY the vectorized engine: ``simulate()`` on a prebuilt bracket with a
+    stub model. No snapshot IO, no model fitting, no real probability computation —
+    this is the numpy hot path (CLAUDE.md), ~0.15s on Apple Silicon. The full
+    ``make sim`` budget is enforced separately by the pipeline test below."""
     bracket = build_bracket(r32_snapshot(make_match), NOW)
     model = StubModel()
     start = time.perf_counter()
@@ -265,3 +269,70 @@ def test_100k_sims_complete_under_ten_seconds(make_match: MatchFactory) -> None:
     assert elapsed < 10.0, f"sim took {elapsed:.2f}s"
     # grouped sampling: the model is consulted per distinct pairing, not per sim
     assert len(model.predicted) < 1000
+
+
+def test_full_sim_pipeline_100k_under_ten_seconds(
+    tmp_path: Any, make_match: MatchFactory
+) -> None:
+    """Times everything ``make sim`` runs in-process at production scale: snapshot
+    load, corpus combine, ensemble fit (3 walk-forward folds + final refit of all
+    bases — the dominant cost, ~8s of ~9s measured on real 2026-07-03 data), bracket
+    build, 100k simulations, and the latest.json write. Only interpreter startup is
+    excluded. Corpus sized to the real one: ~49.5k historical matches, 300 teams."""
+    from services.ingest import write_snapshot
+    from services.sim.cli import run
+
+    now = datetime.now(UTC)
+    n_teams, n_history = 300, 49_500
+    names = [f"N{i:03d}" for i in range(n_teams)]
+    history = []
+    for i in range(n_history):
+        home, away = names[i % n_teams], names[(i * 7 + 1) % n_teams]
+        if home == away:
+            away = names[(i * 7 + 2) % n_teams]
+        stage = (
+            "Friendly"
+            if i % 3 == 0
+            else "FIFA World Cup" if i % 25 == 0 else "FIFA World Cup qualification"
+        )
+        history.append(
+            make_match(
+                id=10_000 + i,
+                kickoff=now - timedelta(hours=13 * (n_history - i)),
+                stage=stage,
+                home_id=20_000 + (i % n_teams),
+                home=home,
+                away_id=20_000 + ((i * 7 + 1) % n_teams),
+                away=away,
+                home_goals=i % 4,
+                away_goals=(i // 3) % 3,
+            )
+        )
+    write_snapshot(
+        Snapshot(as_of_utc=now, source="test-history", matches=history, standings={}),
+        tmp_path / "snapshots",
+        kind="history",
+    )
+    wc = [  # 16-slot LAST_32 entry round mirroring the live 2026 bracket state
+        make_match(
+            id=900 + slot,
+            kickoff=now + timedelta(days=1, hours=slot),
+            stage="LAST_32",
+            home_id=30_000 + 2 * slot,
+            home=names[2 * slot],
+            away_id=30_000 + 2 * slot + 1,
+            away=names[2 * slot + 1],
+        )
+        for slot in range(16)
+    ]
+    write_snapshot(
+        Snapshot(as_of_utc=now, source="test", matches=wc, standings={}),
+        tmp_path / "snapshots",
+    )
+
+    start = time.perf_counter()
+    exit_code = run(["--n-sims", "100000", "--seed", "1"], data_dir=tmp_path)
+    elapsed = time.perf_counter() - start
+    assert exit_code == 0
+    assert (tmp_path / "sim" / "latest.json").exists()
+    assert elapsed < 10.0, f"full make sim path took {elapsed:.2f}s (budget 10s)"
