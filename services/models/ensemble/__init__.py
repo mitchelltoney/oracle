@@ -43,7 +43,7 @@ def _default_bases() -> list[MatchModel]:
 
 class EnsembleModel:
     name = "ensemble"
-    version = "ens-1.0.0"
+    version = "ens-1.0.1"  # 1.0.1: dedup fix changed corpus, validation targets and weights
 
     def __init__(
         self,

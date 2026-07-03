@@ -82,6 +82,7 @@ def test_combine_corpora_dedupes_preferring_provider_row(
         away="Argentina",
         home_goals=2,
         away_goals=2,
+        stage="Friendly",  # history rows carry tournament names, not provider tokens
     )
 
     combined = combine_corpora([history_row, other], [provider_row])
@@ -89,3 +90,52 @@ def test_combine_corpora_dedupes_preferring_provider_row(
     usa_mexico = combined[1]
     assert usa_mexico.home_id == team_name_id("USA")
     assert usa_mexico.utc_kickoff.hour == 20
+
+
+def test_combine_corpora_drops_history_finals_twin_across_utc_date_boundary(
+    make_match: MatchFactory,
+) -> None:
+    # same real-world match, 20:00 PDT kickoff: the history CSV stamps it noon
+    # UTC on the LOCAL date, the provider row lands at 03:00 UTC the NEXT day —
+    # different UTC dates, so date-keyed dedup alone would keep both (and here
+    # they even disagree on the result). The provider is authoritative for the
+    # finals seasons it covers; the history twin must not survive as an earlier-
+    # timestamped leak of the same result.
+    history_twin = make_match(
+        id=444,
+        kickoff=KICKOFF_BASE.replace(hour=12, minute=0),  # noon UTC, June 15
+        season=2026,
+        home="USA",
+        away="Mexico",
+        home_goals=1,
+        away_goals=1,
+        stage="FIFA World Cup",
+    )
+    provider_row = make_match(
+        id=555,
+        kickoff=KICKOFF_BASE.replace(hour=3, minute=0) + timedelta(days=1),
+        season=2026,
+        home="United States",
+        away="Mexico",
+        home_goals=3,
+        away_goals=4,
+        stage="LAST_32",
+    )
+    past_finals = make_match(  # provider does NOT cover 2018: row must survive
+        id=666,
+        kickoff=KICKOFF_BASE.replace(year=2018) - timedelta(days=8 * 365),
+        season=2018,
+        home="France",
+        away="Croatia",
+        home_goals=4,
+        away_goals=2,
+        stage="FIFA World Cup",
+    )
+
+    combined = combine_corpora([history_twin, past_finals], [provider_row])
+    assert [m.id for m in combined] == [666, 555]  # twin dropped, 2018 row kept
+    assert combined[1].home_goals == 3  # the provider result, not the twin's
+
+    # without provider coverage the history finals rows remain the sole source
+    history_only = combine_corpora([history_twin, past_finals], [])
+    assert [m.id for m in history_only] == [666, 444]

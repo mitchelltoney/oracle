@@ -246,7 +246,7 @@ def test_cli_writes_latest_json(tmp_path: Any, make_match: MatchFactory) -> None
     body = json.loads((tmp_path / "sim" / "latest.json").read_text())
     assert body["schema_version"] == 1
     assert body["model"] == "elo"
-    assert body["model_version"] == "elo-1.0.0"
+    assert body["model_version"] == "elo-1.0.1"
     assert body["n_sims"] == 2000
     assert body["rounds"] == ["QUARTER_FINALS", "SEMI_FINALS", "FINAL"]
     assert len(body["teams"]) == 8
@@ -295,10 +295,14 @@ def test_full_sim_pipeline_100k_under_ten_seconds(
             if i % 3 == 0
             else "FIFA World Cup" if i % 25 == 0 else "FIFA World Cup qualification"
         )
+        kickoff = now - timedelta(hours=13 * (n_history - i))
         history.append(
             make_match(
                 id=10_000 + i,
-                kickoff=now - timedelta(hours=13 * (n_history - i)),
+                kickoff=kickoff,
+                season=kickoff.year,  # like martj42: else every finals row would
+                # land in the provider-covered season and be dropped by dedup,
+                # degenerating the ensemble fit this test exists to time
                 stage=stage,
                 home_id=20_000 + (i % n_teams),
                 home=home,

@@ -76,7 +76,7 @@ def test_predict_appends_valid_pre_kickoff_rows_for_all_models(
     log_path = planted_data_dir / "predictions" / "predictions.jsonl"
     rows = [json.loads(line) for line in log_path.read_text().splitlines()]
     # one row per (fixture, model); the GBM is skipped on this tiny corpus
-    expected_versions = {"dc-1.0.0", "elo-1.0.0", "ens-1.0.0"}
+    expected_versions = {"dc-1.0.0", "elo-1.0.1", "ens-1.0.1"}
     by_fixture: dict[int, set[str]] = {}
     for row in rows:
         by_fixture.setdefault(row["fixture_id"], set()).add(row["model_version"])

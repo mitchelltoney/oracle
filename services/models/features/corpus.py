@@ -85,9 +85,20 @@ def _pair_key(match: Match) -> tuple[date, frozenset[str]]:
 
 
 def combine_corpora(history: Sequence[Match], wc: Sequence[Match]) -> list[Match]:
-    """One deduped chronological corpus with name-keyed team ids."""
+    """One deduped chronological corpus with name-keyed team ids.
+
+    The provider is authoritative for every World Cup finals season it covers,
+    so history rows for those (season, finals-tier) matches are dropped outright.
+    The date-keyed dedup below cannot catch them: history rows sit at noon UTC
+    of the LOCAL match date, while an Americas evening kickoff lands on the
+    next UTC day in the provider feed — the same real match would survive twice
+    under two timestamps, leaking results across walk-forward cutoffs.
+    """
+    covered = {m.season for m in wc if importance_tier(m.stage) is Tier.WC_FINALS}
     combined: dict[tuple[date, frozenset[str]], Match] = {}
     for match in history:
+        if match.season in covered and importance_tier(match.stage) is Tier.WC_FINALS:
+            continue
         combined.setdefault(_pair_key(match), with_name_ids(match))
     for match in wc:  # provider rows override same-day history duplicates
         combined[_pair_key(match)] = with_name_ids(match)

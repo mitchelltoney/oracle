@@ -26,7 +26,7 @@ def test_fit_predict_produces_valid_distribution(make_match: MatchFactory) -> No
     assert p.p_home + p.p_draw + p.p_away == pytest.approx(1.0, abs=1e-6)
     assert all(0.0 < v < 1.0 for v in (p.p_home, p.p_draw, p.p_away))
     assert p.top_scorelines == []
-    assert p.model_version == "gbm-1.0.0"
+    assert p.model_version == "gbm-1.0.1"
     # Alba dominates Harbor throughout the corpus; the model should notice
     assert p.p_home > p.p_away
 

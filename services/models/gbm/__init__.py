@@ -52,7 +52,7 @@ _PARAMS: dict[str, object] = {
 
 class GbmModel:
     name = "gbm"
-    version = "gbm-1.0.0"
+    version = "gbm-1.0.1"  # 1.0.1: cross-corpus date-boundary dedup fix changed the training corpus
 
     def __init__(self) -> None:
         self._cutoff: datetime | None = None

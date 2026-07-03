@@ -48,7 +48,7 @@ FloatArray = NDArray[np.float64]
 
 class EloModel:
     name = "elo"
-    version = "elo-1.0.0"
+    version = "elo-1.0.1"  # 1.0.1: cross-corpus date-boundary dedup fix changed the training corpus
 
     def __init__(self) -> None:
         self._cutoff: datetime | None = None

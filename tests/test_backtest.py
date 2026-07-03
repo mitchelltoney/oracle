@@ -98,7 +98,9 @@ class StubModel:
         ]
         if not train:
             raise ValueError("no finished matches before cutoff to fit on")
-        self.fit_calls.append((max(m.utc_kickoff for m in train), cutoff))
+        # record the RAW input's max kickoff: this asserts the CALLER filtered
+        # the corpus, not just that this stub did
+        self.fit_calls.append((max(m.utc_kickoff for m in matches), cutoff))
         self._cutoff = cutoff
 
     def predict(self, fixture: Match) -> Prediction:
@@ -147,7 +149,7 @@ def test_report_schema_and_metrics(planted_dir: Path) -> None:
     assert tournament["n_targets"] == 8
     versions = {m["model_version"] for m in tournament["models"]}
     # the GBM is rightly skipped on this tiny corpus; the rest must report
-    assert {"dc-1.0.0", "elo-1.0.0", "ens-1.0.0"} <= versions
+    assert {"dc-1.0.0", "elo-1.0.1", "ens-1.0.1"} <= versions
     for entry in tournament["models"]:
         assert entry["n"] == 8
         assert 0.0 <= entry["brier"] <= 2.0

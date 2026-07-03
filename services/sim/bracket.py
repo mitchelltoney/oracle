@@ -112,6 +112,11 @@ def build_bracket(snapshot: Snapshot, now: datetime) -> BracketState:
         if winner_idx is not None:
             known_winners.setdefault(round_name, {})[key] = winner_idx
             return
+        # KNOWN SCOPE (stats-validator WARN): clamping an in-play/feed-lagged
+        # kickoff to now+margin lets a cutoff=now model predict it, though the
+        # corpus may contain matches finished after the TRUE kickoff. Affects
+        # only data/sim/latest.json — never the prediction log, whose fixtures
+        # all kick off genuinely after now.
         clamped = replace(
             match, utc_kickoff=max(match.utc_kickoff, now + _KICKOFF_MARGIN)
         )

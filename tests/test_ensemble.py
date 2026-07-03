@@ -98,7 +98,7 @@ def test_inverse_log_loss_weights_favor_the_sharper_model(
 
     p = model.predict(make_match(kickoff=KICKOFF_BASE + timedelta(days=1)))
     assert p.p_home + p.p_draw + p.p_away == pytest.approx(1.0)
-    assert p.model_version == "ens-1.0.0"
+    assert p.model_version == "ens-1.0.1"
     # blend must sit strictly between the two bases
     assert flat._probs[0] < p.p_home < sharp._probs[0]
 
@@ -132,7 +132,7 @@ def test_weights_file_schema_and_provenance(
     assert len(files) == 1
     payload = json.loads(files[0].read_text())
     assert payload["schema_version"] == 1
-    assert payload["model_version"] == "ens-1.0.0"
+    assert payload["model_version"] == "ens-1.0.1"
     assert payload["fallback"] is False
     assert sum(payload["weights"].values()) == pytest.approx(1.0)
     assert payload["cutoff"] == KICKOFF_BASE.isoformat()
