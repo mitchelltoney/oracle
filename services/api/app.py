@@ -5,6 +5,7 @@ Run with: uv run uvicorn --factory services.api.app:create_app
 
 from __future__ import annotations
 
+import json
 from dataclasses import asdict
 from datetime import UTC, datetime
 from pathlib import Path
@@ -60,5 +61,15 @@ def create_app(data_dir: Path = Path("data")) -> FastAPI:
             log.latest_per_fixture().values(), snapshot.matches
         )
         return [asdict(report) for _, report in sorted(reports.items())]
+
+    @app.get("/sim")
+    def sim() -> dict[str, Any]:
+        path = data_dir / "sim" / "latest.json"
+        if not path.exists():
+            raise HTTPException(
+                status_code=404, detail="no bracket simulation yet — run `make sim`"
+            )
+        body: dict[str, Any] = json.loads(path.read_text(encoding="utf-8"))
+        return body
 
     return app

@@ -6,3 +6,12 @@ __pycache__/
 .mypy_cache/
 .pytest_cache/
 .ruff_cache/
+.DS_Store
+.local-backup/
+# regenerable bulk pulls; their versioning is the timestamped filenames.
+# data/predictions/ and data/sim/ ARE tracked: the immutable log and the
+# sim/backtest/weights artifacts the nightly routine commits.
+data/raw/*
+!data/raw/.gitkeep
+data/snapshots/*
+!data/snapshots/.gitkeep
