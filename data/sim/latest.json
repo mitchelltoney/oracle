@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-07-09T06:57:34.493700+00:00",
-  "snapshot_as_of": "2026-07-09T06:57:07.578142+00:00",
-  "history_as_of": "2026-07-09T06:57:08.711026+00:00",
+  "generated_at": "2026-07-10T06:00:19.933126+00:00",
+  "snapshot_as_of": "2026-07-10T06:00:06.981392+00:00",
+  "history_as_of": "2026-07-10T06:00:07.377439+00:00",
   "model": "ensemble",
   "model_version": "ens-1.0.1",
   "seed": 26,
@@ -36,9 +36,9 @@
       "reach_last_32": 1.0,
       "reach_last_16": 1.0,
       "reach_quarter_finals": 1.0,
-      "reach_semi_finals": 0.67184,
-      "reach_final": 0.35721,
-      "win": 0.22344
+      "reach_semi_finals": 1.0,
+      "reach_final": 0.5648,
+      "win": 0.37783
     },
     "Sweden": {
       "reach_last_32": 1.0,
@@ -76,9 +76,9 @@
       "reach_last_32": 1.0,
       "reach_last_16": 1.0,
       "reach_quarter_finals": 1.0,
-      "reach_semi_finals": 0.32816,
-      "reach_final": 0.1239,
-      "win": 0.05922
+      "reach_semi_finals": 0.0,
+      "reach_final": 0.0,
+      "win": 0.0
     },
     "Portugal": {
       "reach_last_32": 1.0,
@@ -100,9 +100,9 @@
       "reach_last_32": 1.0,
       "reach_last_16": 1.0,
       "reach_quarter_finals": 1.0,
-      "reach_semi_finals": 0.73217,
-      "reach_final": 0.42715,
-      "win": 0.28294
+      "reach_semi_finals": 0.73157,
+      "reach_final": 0.3636,
+      "win": 0.24154
     },
     "Austria": {
       "reach_last_32": 1.0,
@@ -132,9 +132,9 @@
       "reach_last_32": 1.0,
       "reach_last_16": 1.0,
       "reach_quarter_finals": 1.0,
-      "reach_semi_finals": 0.26783,
-      "reach_final": 0.09174,
-      "win": 0.04025
+      "reach_semi_finals": 0.26843,
+      "reach_final": 0.0716,
+      "win": 0.03142
     },
     "Senegal": {
       "reach_last_32": 1.0,
@@ -172,9 +172,9 @@
       "reach_last_32": 1.0,
       "reach_last_16": 1.0,
       "reach_quarter_finals": 1.0,
-      "reach_semi_finals": 0.37217,
-      "reach_final": 0.1369,
-      "win": 0.0365
+      "reach_semi_finals": 0.37459,
+      "reach_final": 0.13987,
+      "win": 0.0323
     },
     "Mexico": {
       "reach_last_32": 1.0,
@@ -196,9 +196,9 @@
       "reach_last_32": 1.0,
       "reach_last_16": 1.0,
       "reach_quarter_finals": 1.0,
-      "reach_semi_finals": 0.62783,
-      "reach_final": 0.31738,
-      "win": 0.12552
+      "reach_semi_finals": 0.62541,
+      "reach_final": 0.31614,
+      "win": 0.10997
     },
     "Congo DR": {
       "reach_last_32": 1.0,
@@ -212,9 +212,9 @@
       "reach_last_32": 1.0,
       "reach_last_16": 1.0,
       "reach_quarter_finals": 1.0,
-      "reach_semi_finals": 0.71032,
-      "reach_final": 0.42893,
-      "win": 0.19875
+      "reach_semi_finals": 0.7116,
+      "reach_final": 0.42809,
+      "win": 0.17855
     },
     "Cape Verde Islands": {
       "reach_last_32": 1.0,
@@ -244,9 +244,9 @@
       "reach_last_32": 1.0,
       "reach_last_16": 1.0,
       "reach_quarter_finals": 1.0,
-      "reach_semi_finals": 0.28968,
-      "reach_final": 0.11679,
-      "win": 0.03338
+      "reach_semi_finals": 0.2884,
+      "reach_final": 0.1159,
+      "win": 0.02839
     },
     "Algeria": {
       "reach_last_32": 1.0,
