@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-07-11T06:00:21.980075+00:00",
-  "snapshot_as_of": "2026-07-11T06:00:07.960177+00:00",
-  "history_as_of": "2026-07-11T06:00:09.109037+00:00",
+  "generated_at": "2026-07-13T06:00:33.370886+00:00",
+  "snapshot_as_of": "2026-07-13T06:00:08.340671+00:00",
+  "history_as_of": "2026-07-13T06:00:09.037611+00:00",
   "model": "ensemble",
   "model_version": "ens-1.0.1",
   "seed": 26,
@@ -37,8 +37,8 @@
       "reach_last_16": 1.0,
       "reach_quarter_finals": 1.0,
       "reach_semi_finals": 1.0,
-      "reach_final": 0.49649,
-      "win": 0.33196
+      "reach_final": 0.49521,
+      "win": 0.29481
     },
     "Sweden": {
       "reach_last_32": 1.0,
@@ -101,8 +101,8 @@
       "reach_last_16": 1.0,
       "reach_quarter_finals": 1.0,
       "reach_semi_finals": 1.0,
-      "reach_final": 0.50351,
-      "win": 0.34121
+      "reach_final": 0.50479,
+      "win": 0.30708
     },
     "Austria": {
       "reach_last_32": 1.0,
@@ -172,9 +172,9 @@
       "reach_last_32": 1.0,
       "reach_last_16": 1.0,
       "reach_quarter_finals": 1.0,
-      "reach_semi_finals": 0.37438,
-      "reach_final": 0.1388,
-      "win": 0.02963
+      "reach_semi_finals": 0.0,
+      "reach_final": 0.0,
+      "win": 0.0
     },
     "Mexico": {
       "reach_last_32": 1.0,
@@ -196,9 +196,9 @@
       "reach_last_32": 1.0,
       "reach_last_16": 1.0,
       "reach_quarter_finals": 1.0,
-      "reach_semi_finals": 0.62562,
-      "reach_final": 0.31559,
-      "win": 0.10148
+      "reach_semi_finals": 1.0,
+      "reach_final": 0.43361,
+      "win": 0.15032
     },
     "Congo DR": {
       "reach_last_32": 1.0,
@@ -212,9 +212,9 @@
       "reach_last_32": 1.0,
       "reach_last_16": 1.0,
       "reach_quarter_finals": 1.0,
-      "reach_semi_finals": 0.71252,
-      "reach_final": 0.43,
-      "win": 0.16948
+      "reach_semi_finals": 1.0,
+      "reach_final": 0.56639,
+      "win": 0.24779
     },
     "Cape Verde Islands": {
       "reach_last_32": 1.0,
@@ -244,9 +244,9 @@
       "reach_last_32": 1.0,
       "reach_last_16": 1.0,
       "reach_quarter_finals": 1.0,
-      "reach_semi_finals": 0.28748,
-      "reach_final": 0.11561,
-      "win": 0.02624
+      "reach_semi_finals": 0.0,
+      "reach_final": 0.0,
+      "win": 0.0
     },
     "Algeria": {
       "reach_last_32": 1.0,
