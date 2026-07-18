@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-07-17T07:10:14.720982+00:00",
-  "snapshot_as_of": "2026-07-17T06:23:51.938156+00:00",
-  "history_as_of": "2026-07-17T06:23:53.419861+00:00",
+  "generated_at": "2026-07-18T06:01:19.064942+00:00",
+  "snapshot_as_of": "2026-07-18T06:01:06.917461+00:00",
+  "history_as_of": "2026-07-18T06:01:07.420473+00:00",
   "model": "ensemble",
   "model_version": "ens-1.0.1",
   "seed": 26,
@@ -102,7 +102,7 @@
       "reach_quarter_finals": 1.0,
       "reach_semi_finals": 1.0,
       "reach_final": 1.0,
-      "win": 0.60499
+      "win": 0.60493
     },
     "Austria": {
       "reach_last_32": 1.0,
@@ -214,7 +214,7 @@
       "reach_quarter_finals": 1.0,
       "reach_semi_finals": 1.0,
       "reach_final": 1.0,
-      "win": 0.39501
+      "win": 0.39507
     },
     "Cape Verde Islands": {
       "reach_last_32": 1.0,
